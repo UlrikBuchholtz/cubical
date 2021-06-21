@@ -4,6 +4,8 @@
 module Cubical.Experiments.SmashJoinSusp where
 
 open import Cubical.Foundations.Everything
+open import Cubical.Foundations.Pointed.Homogeneous
+open import Cubical.Foundations.Pointed.Adjunction
 
 open import Cubical.Data.Unit
 open import Cubical.Data.Bool
@@ -12,11 +14,9 @@ open import Cubical.Data.Sigma.Properties
 open import Cubical.Data.HomotopyGroup
 
 open import Cubical.HITs.PropositionalTruncation
-open import Cubical.HITs.Pushout
-open import Cubical.HITs.Pushout.Flattening
 open import Cubical.HITs.Susp
+open import Cubical.HITs.Susp.LoopAdjunction
 open import Cubical.HITs.Join
-open import Cubical.HITs.Wedge
 open import Cubical.HITs.SmashProduct
 
 open import Cubical.Homotopy.Connected
@@ -36,6 +36,7 @@ private
 fst (∙join A B) = join (typ A) (typ B)
 snd (∙join A B) = inl (pt A)
 
+{-
 -- an equivalence between the join and smash with a suspension
 module _ {ℓA ℓB} (A : Pointed ℓA) (B : Pointed ℓB) where
 
@@ -91,7 +92,7 @@ module _ {ℓA ℓB} (A : Pointed ℓA) (B : Pointed ℓB) where
   fst (to-from i) (gluer south j) = {!!}
   fst (to-from i) (gluer (merid b k) j) = {!!}
   snd (to-from i) j = sym (rUnit refl) i j
-
+-}
 
 -- adjunction between join and mapping from suspension
 module _ (B : Pointed ℓB) where
@@ -114,6 +115,11 @@ module _ (B : Pointed ℓB) where
                    ; (j = i1) → snd f (i ∨ k) })
           (snd f i)
 
+  -- homogeneity
+  spmap-homogeneous : (X : Pointed ℓX) → isHomogeneous (∙Susp (typ B) →∙ X ∙)
+  spmap-homogeneous X = subst (λ Z → isHomogeneous Z) (LoopSuspPath B X)
+    (isHomogeneous→∙ (isHomogeneousPath (typ X) refl))
+
   -- unit
   sspm-unit-sq : (A : Pointed ℓA) (b : typ B)
     → Square {A = join (typ A) (typ B)}
@@ -130,18 +136,37 @@ module _ (B : Pointed ℓB) where
   fst (snd (sspm-unit A) i) (merid b j) = sspm-unit-sq A b i j
   snd (snd (sspm-unit A) i) j = sspm-unit-sq A (pt B) i j
 
-  sspm-unit-sq-nat : {A : Pointed ℓA}{A' : Pointed ℓA'}(f : A →∙ A')
-    (b : typ B) → {!!}
-  sspm-unit-sq-nat f b = {!!}
-
   sspm-unit-nat : {A : Pointed ℓA}{A' : Pointed ℓA'}(f : A →∙ A')
     → spmap-mapₗ (join-mapₗ f) ∘∙ sspm-unit A ≡ sspm-unit A' ∘∙ f
-  fst (fst (sspm-unit-nat f i) a) north = inl (fst f a)
-  fst (fst (sspm-unit-nat f i) a) south = inl (snd f i)
-  fst (fst (sspm-unit-nat f i) a) (merid b j) = {!!}
-  snd (fst (sspm-unit-nat f i) a) j = {!!}
-  fst (snd (sspm-unit-nat f i) j) = {!!}
-  snd (snd (sspm-unit-nat f i) j) = {!!}
+  sspm-unit-nat {A = A} {A' = A'} f = →∙Homogeneous≡ (spmap-homogeneous (∙join A' B)) lemma
+    where
+      lemma : fst (spmap-mapₗ (join-mapₗ f) ∘∙ sspm-unit A) ≡ fst (sspm-unit A' ∘∙ f)
+      fst (lemma i a) north = inl (fst f a)
+      fst (lemma i a) south = inl (snd f i)
+      fst (lemma i a) (merid b j) = hcomp
+        (λ k → λ { (i = i0) → fst (join-mapₗ f) (doubleCompPath-filler
+                                  refl (push a b) (sym (push (pt A) b)) k j)
+                 ; (i = i1) → doubleCompPath-filler refl (push (fst f a) b)
+                                                    (sym (push (pt A') b)) k j
+                 ; (j = i0) → inl (fst f a)
+                 ; (j = i1) → push (snd f i) b (~ k) }) (push (fst f a) b j)
+      snd (lemma i a) j = hcomp
+        (λ k → λ { (i = i0) → doubleCompPath-filler refl
+                      (cong (join-mapₗ f .fst) (push a (pt B) ∙ sym (push (pt A) (pt B))))
+                      (cong inl (snd f)) k j
+                 ; (i = i1) → doubleCompPath-filler refl (push (fst f a) (pt B))
+                      (sym (push (pt A') (pt B))) k j
+                 ; (j = i0) → inl (fst f a)
+                 ; (j = i1) → hcomp
+                      (λ j → λ { (i = i0) → inl (snd f (~ j ∨ k))
+                               ; (i = i1) → push (pt A') (pt B) (~ k)
+                               ; (k = i0) → push (snd f (~ j)) (pt B) i
+                               ; (k = i1) → inl (pt A') }) (push (pt A') (pt B) (i ∧ (~ k))) })
+        (fst (join-mapₗ f) (doubleCompPath-filler refl (push a (pt B))
+                                                  (sym (push (pt A) (pt B))) (~ i) j))
+        where
+          p = push (fst f a) (pt B)
+          q = push (fst f (pt A)) (pt B)
 
   sspm-counit : (X : Pointed ℓX) → (∙join (∙Susp (typ B) →∙ X ∙) B) →∙ X
   fst (sspm-counit X) (inl (f , f∙)) = pt X
@@ -187,7 +212,14 @@ module _ (B : Pointed ℓB) where
   fst (sspm-unit-counit A i) (inl a) =
     ((λ k → push (pt A) (pt B) k) ∙ λ k → push a (pt B) (~ k)) i
   fst (sspm-unit-counit A i) (inr b) = push (pt A) b i
-  fst (sspm-unit-counit A i) (push a b j) = {!!}
+  fst (sspm-unit-counit A i) (push a b j) = hcomp
+    (λ k → λ { (i = i0) → doubleCompPath-filler (sym (snd f)) (cong (fst f) (σ B b)) (snd f) k j
+             ; (i = i1) → doubleCompPath-filler refl (push a b) (sym (push (pt A) b)) (~ k) j
+             ; (j = i0) → slideSquare (symDistr (push (pt A) (pt B)) (sym (push a (pt B)))) (~ i) k
+             ; (j = i1) → invSides-filler (push (pt A) b) (sym (snd f)) (~ i) k})
+             (fst f (doubleCompPath-filler refl (merid b) (sym (merid (pt B))) (~ i) j))
+    where
+      f = fst (sspm-unit A) a
   snd (sspm-unit-counit A i) j =
     hcomp (λ k → λ { (i = i0) → doubleCompPath-filler {x = inl (pt A)}
                                                       refl refl refl k j
@@ -201,15 +233,43 @@ module _ (B : Pointed ℓB) where
   sspm-counit-unit : (X : Pointed ℓX)
     → spmap-mapₗ (sspm-counit X) ∘∙ sspm-unit (∙Susp (typ B) →∙ X ∙)
     ≡ idfun∙ (∙Susp (typ B) →∙ X ∙)
-  fst (fst (sspm-counit-unit X i) (f , f∙)) north = f∙ (~ i)
-  fst (fst (sspm-counit-unit X i) (f , f∙)) south =
-    (sym f∙ ∙ cong f (merid (pt B))) i
-  fst (fst (sspm-counit-unit X i) (f , f∙)) (merid b j) = {!!}
-  snd (fst (sspm-counit-unit X i) (f , f∙)) j = {!!}
-  fst (snd (sspm-counit-unit X i) j) north = {!!}
-  fst (snd (sspm-counit-unit X i) j) south = {!!}
-  fst (snd (sspm-counit-unit X i) j) (merid b k) = {!!}
-  snd (snd (sspm-counit-unit X i) j) = {!!}
+  sspm-counit-unit X = →∙Homogeneous≡ (spmap-homogeneous X) lemma
+    where
+      c : ∙Susp (typ B) →∙ X
+      c = pt (∙Susp (typ B) →∙ X ∙)
+
+      lemma : fst (spmap-mapₗ (sspm-counit X) ∘∙ sspm-unit (∙Susp (typ B) →∙ X ∙))
+            ≡ idfun (∙Susp (typ B) →∙ X)
+      fst (lemma i f) north = snd f (~ i)
+      fst (lemma i f) south = (sym (snd f) ∙ cong (fst f) (merid (pt B))) i
+      fst (lemma i f) (merid b j) = hcomp
+        (λ k → λ { (i = i0) → fst (sspm-counit X) (doubleCompPath-filler refl
+                                  (push f b) (sym (push c b)) k j)
+                 ; (i = i1) → fst f (doubleCompPath-filler refl (merid b)
+                                  (sym (merid (pt B))) (~ k) j)
+                 ; (j = i0) → snd f (~ i)
+                 ; (j = i1) → hcomp
+                   (λ j → λ { (i = i0) → doubleCompPath-filler {x = pt X} refl refl refl j k
+                            ; (i = i1) → fst f (merid (pt B) (j ∧ k))
+                            ; (k = i0) → snd f (~ i)
+                            ; (k = i1) → doubleCompPath-filler refl (sym (snd f)) (cong (fst f)
+                                 (merid (pt B))) j i })
+                   (snd f (~ i)) })
+        (doubleCompPath-filler (sym (snd f)) (cong (fst f) (σ B b)) (snd f) (~ i) j)
+      snd (lemma i f) j = hcomp
+        (λ k → λ { (i = i0) → doubleCompPath-filler refl
+                      (cong (fst (sspm-counit X)) (push f (pt B) ∙ sym (push c (pt B)))) refl k j
+                 ; (i = i1) → hcomp
+                   (λ i → λ { (k = i0) → cong (λ q → sym (snd f) ∙∙ cong (fst f) q ∙∙ snd f)
+                                              (σ-pt B) (~ i) j
+                            ; (k = i1) → snd f (i ∧ j)
+                            ; (j = i0) → snd f (~ k)
+                            ; (j = i1) → snd f (i ∨ (~ k))})
+                   (doubleCompPath-filler (sym (snd f)) refl (snd f) (~ k) j)
+                 ; (j = i0) → snd f ((~ i) ∨ (~ k))
+                 ; (j = i1) → doubleCompPath-filler {x = pt X} refl refl refl (~ k) i})
+        (fst (sspm-counit X) (doubleCompPath-filler refl (push f (pt B))
+          (sym (push c (pt B))) (~ i) j))
 
   -- check that the transposing map from the adjunction
   -- equals the map φ in the paper
@@ -228,11 +288,11 @@ module _ (B : Pointed ℓB) where
     fst (ψ (h , h∙)) (push a b i) = ψ-path h a b i
     snd (ψ (h , h∙)) = refl
 
-    lemma : transpose ≡ ψ
-    fst (lemma i (h , h∙)) (inl a) = pt X
-    fst (lemma i (h , h∙)) (inr b) = pt X
-    fst (lemma i (h , h∙)) (push a b j) = ψ-path h a b j
-    snd (lemma i (h , h∙)) j =
+    transpose≡ψ : transpose ≡ ψ
+    fst (transpose≡ψ i (h , h∙)) (inl a) = pt X
+    fst (transpose≡ψ i (h , h∙)) (inr b) = pt X
+    fst (transpose≡ψ i (h , h∙)) (push a b j) = ψ-path h a b j
+    snd (transpose≡ψ i (h , h∙)) j =
       doubleCompPath-filler {x = pt X} refl refl refl (~ i) j
 
     φ-path : (h : typ A → (∙Susp (typ B) →∙ X)) (a : typ A) (b : typ B)
@@ -256,3 +316,47 @@ module _ (B : Pointed ℓB) where
                      ; (j = i0) → h a .snd (i ∧ k)
                      ; (j = i1) → h a .snd k }) (h a .fst (σ B b j))
     snd (agree i (h , h∙)) j = h (pt A) .snd (i ∨ j)
+
+-- If B is at the lowest level, then F and G preserve levels
+-- and so we can apply PtdAdjunction
+module _ (B : Pointed ℓ-zero) where
+  private
+    F : {ℓ : Level} → Pointed ℓ → Pointed ℓ
+    F A = ∙join A B
+
+    F→ : {ℓ ℓ' : Level}{A : Pointed ℓ}{A' : Pointed ℓ'} → (A →∙ A') → (F A →∙ F A')
+    F→ = join-mapₗ B
+
+    F→∘∙ : {ℓ ℓ' ℓ'' : Level}{A : Pointed ℓ}{A' : Pointed ℓ'}{A'' : Pointed ℓ''}
+           (f' : A' →∙ A'')(f : A →∙ A') → F→ (f' ∘∙ f) ≡ F→ f' ∘∙ F→ f
+    fst (F→∘∙ f' f i) (inl a) = inl (fst f' (fst f a))
+    fst (F→∘∙ f' f i) (inr b) = inr b
+    fst (F→∘∙ f' f i) (push a b j) = push (fst f' (fst f a)) b j
+    snd (F→∘∙ f' f i) = cong-∙ inl (cong (fst f') (snd f)) (snd f') i
+
+    G : {ℓ : Level} → Pointed ℓ → Pointed ℓ
+    G X = ∙Susp (typ B) →∙ X ∙
+
+    G→ : {ℓ ℓ' : Level}{X : Pointed ℓ}{X' : Pointed ℓ'} → (X →∙ X') → (G X →∙ G X')
+    G→ = spmap-mapₗ B
+
+    G→∘∙ : {ℓ ℓ' ℓ'' : Level}{X : Pointed ℓ}{X' : Pointed ℓ'}{X'' : Pointed ℓ''}
+           (g' : X' →∙ X'')(g : X →∙ X') → G→ (g' ∘∙ g) ≡ G→ g' ∘∙ G→ g
+    G→∘∙ {X'' = X''} g' g = →∙Homogeneous≡ (spmap-homogeneous B X'') lemma
+      where
+        lemma : fst (G→ (g' ∘∙ g)) ≡ fst (G→ g' ∘∙ G→ g)
+        lemma i f = ∘∙-assoc g' g f i
+
+  sspm-iso : (A : Pointed ℓA)(X : Pointed ℓX)
+    → Iso (∙join A B →∙ X) (A →∙ (∙Susp (typ B) →∙ X ∙))
+  sspm-iso = PtdAdjunctionIso F F F→ F→ F→∘∙ G G G→ G→ G→∘∙ F⊣G
+    where
+      F⊣G : PtdAdjunction F F F→ F→ G G G→ G→
+      PtdAdjunction.ηˡ F⊣G = sspm-unit B
+      PtdAdjunction.ηʳ F⊣G = sspm-unit B
+      PtdAdjunction.η→ F⊣G = sspm-unit-nat B
+      PtdAdjunction.εˡ F⊣G = sspm-counit B
+      PtdAdjunction.εʳ F⊣G = sspm-counit B
+      PtdAdjunction.ε→ F⊣G = sspm-counit-nat B
+      PtdAdjunction.εF-Fη F⊣G = sspm-unit-counit B
+      PtdAdjunction.Gε-ηG F⊣G = sspm-counit-unit B
