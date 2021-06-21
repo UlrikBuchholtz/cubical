@@ -1,7 +1,8 @@
--- some equivalences concerning smash join and susp
+-- adjunction between join and mapping from suspension
+-- (special case of smash and pmap adjunction)
 
 {-# OPTIONS --cubical --no-import-sorts --safe #-}
-module Cubical.Experiments.SmashJoinSusp where
+module Cubical.Experiments.JoinAdjunction where
 
 open import Cubical.Foundations.Everything
 open import Cubical.Foundations.Pointed.Homogeneous
@@ -35,64 +36,6 @@ private
 ∙join : ∀ {ℓA ℓB} → Pointed ℓA → Pointed ℓB → Pointed (ℓ-max ℓA ℓB)
 fst (∙join A B) = join (typ A) (typ B)
 snd (∙join A B) = inl (pt A)
-
-{-
--- an equivalence between the join and smash with a suspension
-module _ {ℓA ℓB} (A : Pointed ℓA) (B : Pointed ℓB) where
-
-  to-path : (a : typ A)(b : typ B)
-    → Path (Smash A (∙Susp (typ B))) (proj a north) basel
-  to-path a b = (λ i → proj a (merid b i)) ∙∙
-    (λ i → proj a (merid (pt B) (~ i))) ∙∙ gluel a
-
-  to : ∙join A B →∙ SmashPtProj A (∙Susp (typ B))
-  fst to (inl a) = proj a north
-  fst to (inr b) = basel
-  fst to (push a b i) = to-path a b i
-  snd to i = proj (pt A) north
-
-  from-path : (a : typ A)(b : typ B)
-    → Path (join (typ A) (typ B)) (inl a) (inl (pt A))
-  from-path a b = push a b ∙ sym (push (pt A) b)
-
-  from-path-pt : (b : typ B) → from-path (pt A) b ≡ refl
-  from-path-pt b = rCancel (push (pt A) b)
-
-  from : SmashPtProj A (∙Susp (typ B)) →∙ ∙join A B
-  fst from basel = inr (pt B)
-  fst from baser = inl (pt A)
-  fst from (proj a north) = inl a
-  fst from (proj a south) = inl (pt A)
-  fst from (proj a (merid b i)) = from-path a b i
-  fst from (gluel a i) = push a (pt B) i
-  fst from (gluer north i) = inl (pt A)
-  fst from (gluer south i) = inl (pt A)
-  fst from (gluer (merid b j) i) = from-path-pt b i j
-  snd from i = inl (pt A)
-
-  from-to : from ∘∙ to ≡ idfun∙ (∙join A B)
-  fst (from-to i) (inl a) = inl a
-  fst (from-to i) (inr b) = (sym (push (pt A) (pt B)) ∙ push (pt A) b) i
-  fst (from-to i) (push a b j) = {!!} -- ✓
-  snd (from-to i) = sym (rUnit refl) i
-
-  to-from-path : (a : typ A)
-    → Path (Smash A (∙Susp (typ B))) (proj (pt A) north) (proj a south)
-  to-from-path a = gluel (pt A) ∙∙ sym (gluel a)
-                                ∙∙ λ i → proj a (merid (pt B) i)
-
-  to-from : to ∘∙ from ≡ idfun∙ (SmashPtProj A (∙Susp (typ B)))
-  fst (to-from i) basel = basel
-  fst (to-from i) baser = gluer north i
-  fst (to-from i) (proj a north) = proj a north
-  fst (to-from i) (proj a south) = to-from-path a i
-  fst (to-from i) (proj a (merid b j)) = {!!}
-  fst (to-from i) (gluel a j) = {!!}
-  fst (to-from i) (gluer north j) = gluer north (i ∧ j)
-  fst (to-from i) (gluer south j) = {!!}
-  fst (to-from i) (gluer (merid b k) j) = {!!}
-  snd (to-from i) j = sym (rUnit refl) i j
--}
 
 -- adjunction between join and mapping from suspension
 module _ (B : Pointed ℓB) where
