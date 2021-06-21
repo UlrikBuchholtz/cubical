@@ -6,6 +6,8 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Path
+open import Cubical.Foundations.Pointed
+open import Cubical.Foundations.Pointed.Homogeneous
 
 open import Cubical.Data.Bool
 open import Cubical.HITs.Join

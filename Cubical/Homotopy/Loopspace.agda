@@ -8,6 +8,7 @@ open import Cubical.Data.Nat
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Pointed
+open import Cubical.Foundations.Pointed.Homogeneous
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.HITs.SetTruncation
@@ -31,7 +32,35 @@ open Iso
 
 {- loop space map -}
 Ω→ : ∀ {ℓA ℓB} {A : Pointed ℓA} {B : Pointed ℓB} (f : A →∙ B) → (Ω A →∙ Ω B)
-Ω→ (f , f∙) = (λ p → (sym f∙ ∙ cong f p) ∙ f∙) , cong (λ q → q ∙ f∙) (sym (rUnit (sym f∙))) ∙ lCancel f∙
+fst (Ω→ (f , f∙)) p = sym f∙ ∙∙ cong f p ∙∙ f∙
+snd (Ω→ (f , f∙)) i j = hcomp (λ k → λ { (i = i0) → doubleCompPath-filler (sym f∙) refl f∙ k j
+                                         ; (i = i1) → f∙ k
+                                         ; (j = i0) → f∙ k
+                                         ; (j = i1) → f∙ k }) (f∙ i0)
+
+{- functoriality of the loop space map -}
+Ω→∘∙ : ∀ {ℓ ℓ' ℓ''} {A : Pointed ℓ} {A' : Pointed ℓ'} {A'' : Pointed ℓ''}
+         → (f' : A' →∙ A'') → (f : A →∙ A') → Ω→ (f' ∘∙ f) ≡ Ω→ f' ∘∙ Ω→ f
+Ω→∘∙ {A = A} {A'' = A''} f' f = →∙Homogeneous≡ (isHomogeneousPath (typ A'') refl)
+                                               (funExt lemma)
+  where
+    q = cong (fst f') (snd f) ∙ snd f'
+
+    sq : Square q (snd f') (cong (fst f') (snd f)) refl
+    sq i j = hcomp (λ k → λ { (i = i0) → doubleCompPath-filler refl (cong (fst f') (snd f))
+                                         (snd f') k j
+                            ; (i = i1) → snd f' (j ∧ k)
+                            ; (j = i0) → fst f' (snd f i)
+                            ; (j = i1) → snd f' k }) (fst f' (snd f (i ∨ j)))
+
+    lemma : (p : typ (Ω A)) → fst (Ω→ (f' ∘∙ f)) p ≡ fst (Ω→ f' ∘∙ Ω→ f) p
+    lemma p i j = hcomp (λ k
+      → λ { (i = i0) → doubleCompPath-filler (sym q) (cong (fst (f' ∘∙ f)) p) q k j
+          ; (i = i1) → doubleCompPath-filler (sym (snd f'))
+                       (cong (fst f') (sym (snd f) ∙∙ cong (fst f) p ∙∙ snd f)) (snd f') k j
+          ; (j = i0) → sq i k
+          ; (j = i1) → sq i k })
+      (fst f' (doubleCompPath-filler (sym (snd f)) (cong (fst f) p) (snd f) i j))
 
 {- Commutativity of loop spaces -}
 isComm∙ : ∀ {ℓ} (A : Pointed ℓ) → Type ℓ
