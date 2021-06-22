@@ -2,7 +2,7 @@
 -- (special case of smash and pmap adjunction)
 
 {-# OPTIONS --cubical --no-import-sorts --safe #-}
-module Cubical.Experiments.JoinAdjunction where
+module Cubical.Experiments.JoinSuspAdjunction where
 
 open import Cubical.Foundations.Everything
 open import Cubical.Foundations.Pointed.Homogeneous
