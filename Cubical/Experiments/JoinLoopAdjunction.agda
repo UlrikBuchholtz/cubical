@@ -138,7 +138,7 @@ module _ (B : Pointed ℓB) where
   jlp-unit : (A : Pointed ℓA) → A →∙ (B →∙ Ω (∙join A B) ∙)
   fst (fst (jlp-unit A) a) b = τ A B a b
   snd (fst (jlp-unit A) a) = τ-pt-r A B a
-  snd (jlp-unit A) = →∙Homogeneous≡ (isHomogeneousΩ (∙join A B)) (funExt (λ b → τ-pt-l A B b))
+  snd (jlp-unit A) = →∙Homogeneous≡ (isHomogeneousΩ (∙join A B)) (funExt (τ-pt-l A B))
 
   jlp-unit-nat : {A : Pointed ℓA}{A' : Pointed ℓA'}(f : A →∙ A')
     → lpmap-mapₗ (join-mapₗ f) ∘∙ jlp-unit A ≡ jlp-unit A' ∘∙ f
@@ -250,7 +250,7 @@ module _ (B : Pointed ℓB) where
     -- with this we can check the claim that we get the claimed map:
     ψ-path : (h : typ A → (∙Susp (typ B) →∙ X)) (a : typ A) (b : typ B)
       → Path (typ X) (pt X) (pt X)
-    ψ-path h a b = sym (h a .snd) ∙∙ (cong (h a .fst) (σ B b )) ∙∙ h a .snd
+    ψ-path h a b = conj (h a .snd) (cong (h a .fst) (σ B b ))
 
     ψ : (A →∙ (∙Susp (typ B) →∙ X ∙)) → (∙join A B →∙ X)
     fst (ψ (h , h∙)) (inl a) = pt X
