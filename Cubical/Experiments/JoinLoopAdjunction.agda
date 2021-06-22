@@ -24,6 +24,9 @@ private
   variable
     ℓ ℓA ℓA' ℓA'' ℓB ℓX ℓX' ℓX'' : Level
 
+σ : (A : Pointed ℓA) → (typ A) → typ (Ω (∙Susp (typ A)))
+σ A a = merid a ∙ sym (merid (pt A))
+
 ∙join : ∀ {ℓA ℓB} → Pointed ℓA → Pointed ℓB → Pointed (ℓ-max ℓA ℓB)
 fst (∙join A B) = join (typ A) (typ B)
 snd (∙join A B) = inl (pt A)
@@ -235,8 +238,41 @@ module _ (B : Pointed ℓB) where
   Alternatively, we can give a direct isomorphism:
   This is however slow to type-check.
 -}
-{-
   module _ (A : Pointed ℓA) (X : Pointed ℓX) where
+    private
+
+      from : (A →∙ (B →∙ Ω X ∙)) → (∙join A B →∙ X)
+      fst (from h) (inl a) = pt X
+      fst (from h) (inr b) = pt X
+      fst (from h) (push a b i) = h .fst a .fst b i
+      snd (from h) = refl
+
+    -- with this we can check the claim that we get the claimed map:
+    ψ-path : (h : typ A → (∙Susp (typ B) →∙ X)) (a : typ A) (b : typ B)
+      → Path (typ X) (pt X) (pt X)
+    ψ-path h a b = sym (h a .snd) ∙∙ (cong (h a .fst) (σ B b )) ∙∙ h a .snd
+
+    ψ : (A →∙ (∙Susp (typ B) →∙ X ∙)) → (∙join A B →∙ X)
+    fst (ψ (h , h∙)) (inl a) = pt X
+    fst (ψ (h , h∙)) (inr b) = pt X
+    fst (ψ (h , h∙)) (push a b i) = ψ-path h a b i
+    snd (ψ (h , h∙)) = refl
+
+    Φ : (∙Susp (typ B) →∙ X ∙) →∙ (B →∙ Ω X ∙)
+    fst Φ = Iso.inv (LoopSuspIso B X)
+    snd Φ = →∙Homogeneous≡ (isHomogeneousΩ X) (funExt λ b → sym (lUnit refl))
+
+    φ : (A →∙ (∙Susp (typ B) →∙ X ∙)) → (∙join A B →∙ X)
+    φ h = from (Φ ∘∙ h)
+
+    check : φ ≡ ψ
+    fst (check i h) (inl a) = pt X
+    fst (check i h) (inr b) = pt X
+    fst (check i h) (push a b j) = ψ-path (fst h) a b j
+    snd (check i h) = refl
+
+{-
+    -- Here comes the rest of the isomorphism
     private
       to : (∙join A B →∙ X) → (A →∙ (B →∙ Ω X ∙))
       fst (fst (to g) a) b = conj (snd g) (cong (fst g) (τ A B a b))
@@ -245,12 +281,6 @@ module _ (B : Pointed ℓB) where
       snd (to g) = →∙Homogeneous≡ (isHomogeneousΩ X)
         (funExt λ b → cong (conj (snd g)) (cong (cong (fst g)) (τ-pt-l A B b))
           ∙ lCancelOuter (snd g))
-
-      from : (A →∙ (B →∙ Ω X ∙)) → (∙join A B →∙ X)
-      fst (from h) (inl a) = pt X
-      fst (from h) (inr b) = pt X
-      fst (from h) (push a b i) = h .fst a .fst b i
-      snd (from h) = refl
 
       to-from : section to from
       to-from h = →∙Homogeneous≡ (lpmap-homogeneous X) (funExt lemma₁)
