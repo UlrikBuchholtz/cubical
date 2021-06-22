@@ -271,6 +271,16 @@ module _ (B : Pointed ℓB) where
     fst (check i h) (push a b j) = ψ-path (fst h) a b j
     snd (check i h) = refl
 
+    -- we can also check that `from` really comes from the adjunction
+    ξ : (A →∙ (B →∙ Ω X ∙)) → (∙join A B →∙ X)
+    ξ h = jlp-counit X ∘∙ join-mapₗ h
+
+    check₂ : ξ ≡ from
+    fst (check₂ i h) (inl a) = pt X
+    fst (check₂ i h) (inr b) = pt X
+    fst (check₂ i h) (push a b j) = h .fst a .fst b j
+    snd (check₂ i h) = sym (rUnit refl) i
+
 {-
     -- Here comes the rest of the isomorphism
     private
