@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Cubical.Data.Equality</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">{-
+
+This module converts between the path types and the inductively
+defined equality types. It provides the following for the inductively
+defined equality type _≡_.
+
+- Basic theory for _≡_ (J, ap, transport, ...)
+
+- A proof of function extensionality using _≡_
+
+- A proof of univalence for _≡_ and equivalences using _≡_
+
+- S¹ and propositional truncation with (path) constructors, eliminators
+  and β rules all in terms of _≡_.
+
+-}</a>
+
+<a id="435" class="Symbol">{-#</a> <a id="439" class="Keyword">OPTIONS</a> <a id="447" class="Pragma">--safe</a> <a id="454" class="Symbol">#-}</a>
+<a id="458" class="Keyword">module</a> <a id="465" href="Cubical.Data.Equality.html" class="Module">Cubical.Data.Equality</a> <a id="487" class="Keyword">where</a>
+
+<a id="494" class="Keyword">open</a> <a id="499" class="Keyword">import</a> <a id="506" href="Cubical.Data.Equality.Base.html" class="Module">Cubical.Data.Equality.Base</a> <a id="533" class="Keyword">public</a>
+<a id="540" class="Keyword">open</a> <a id="545" class="Keyword">import</a> <a id="552" href="Cubical.Data.Equality.Conversion.html" class="Module">Cubical.Data.Equality.Conversion</a> <a id="585" class="Keyword">public</a>
+<a id="592" class="Keyword">open</a> <a id="597" class="Keyword">import</a> <a id="604" href="Cubical.Data.Equality.FunctionExtensionality.html" class="Module">Cubical.Data.Equality.FunctionExtensionality</a> <a id="649" class="Keyword">public</a>
+<a id="656" class="Keyword">open</a> <a id="661" class="Keyword">import</a> <a id="668" href="Cubical.Data.Equality.Univalence.html" class="Module">Cubical.Data.Equality.Univalence</a> <a id="701" class="Keyword">public</a>
+<a id="708" class="Keyword">open</a> <a id="713" class="Keyword">import</a> <a id="720" href="Cubical.Data.Equality.S1.html" class="Module">Cubical.Data.Equality.S1</a> <a id="745" class="Keyword">public</a>
+<a id="752" class="Keyword">open</a> <a id="757" class="Keyword">import</a> <a id="764" href="Cubical.Data.Equality.PropositionalTruncation.html" class="Module">Cubical.Data.Equality.PropositionalTruncation</a> <a id="810" class="Keyword">public</a>
+</pre></body></html>
